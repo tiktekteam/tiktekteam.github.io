@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Double Pendulum Simulation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        canvas {
+            border: 1px solid #ccc;
+            margin: 20px 0;
+        }
+        .controls {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        input[type="range"] {
+            width: 150px;
+        }
+        a.back {
+            display: inline-block;
+            margin-top: 20px;
+            color: #0066cc;
+            text-decoration: none;
+        }
+        a.back:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>Double Pendulum Simulation</h1>
+    
+    <div class="controls">
+        <div class="control-group">
+            <label for="length1">Length 1:</label>
+            <input type="range" id="length1" min="50" max="150" value="100">
+            <span id="length1-value">100</span>
+        </div>
+        
+        <div class="control-group">
+            <label for="length2">Length 2:</label>
+            <input type="range" id="length2" min="50" max="150" value="100">
+            <span id="length2-value">100</span>
+        </div>
+        
+        <div class="control-group">
+            <label for="mass1">Mass 1:</label>
+            <input type="range" id="mass1" min="5" max="30" value="10">
+            <span id="mass1-value">10</span>
+        </div>
+        
+        <div class="control-group">
+            <label for="mass2">Mass 2:</label>
+            <input type="range" id="mass2" min="5" max="30" value="10">
+            <span id="mass2-value">10</span>
+        </div>
+    </div>
+    
+    <canvas id="pendulum-canvas" width="600" height="400"></canvas>
+    
+    <p>This simulation demonstrates the chaotic motion of a double pendulum system.</p>
+    
+    <a href="../index.html" class="back">← Back to All Simulations</a>
+    
+    <script>
+        // Get the canvas and its context
+        const canvas = document.getElementById('pendulum-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Get the controls
+        const length1Slider = document.getElementById('length1');
+        const length1Value = document.getElementById('length1-value');
+        const length2Slider = document.getElementById('length2');
+        const length2Value = document.getElementById('length2-value');
+        const mass1Slider = document.getElementById('mass1');
+        const mass1Value = document.getElementById('mass1-value');
+        const mass2Slider = document.getElementById('mass2');
+        const mass2Value = document.getElementById('mass2-value');
+        
+        // Initial values
+        let length1 = 100;
+        let length2 = 100;
+        let mass1 = 10;
+        let mass2 = 10;
+        let angle1 = Math.PI / 2; // Initial angle (90 degrees)
+        let angle2 = Math.PI / 2; // Initial angle (90 degrees)
+        let angle1Velocity = 0;
+        let angle2Velocity = 0;
+        let gravity = 9.8;
+        let damping = 0.999; // Damping factor
+        
+        // Update values when sliders change
+        length1Slider.addEventListener('input', function() {
+            length1 = parseFloat(this.value);
+            length1Value.textContent = length1;
+        });
+        
+        length2Slider.addEventListener('input', function() {
+            length2 = parseFloat(this.value);
+            length2Value.textContent = length2;
+        });
+        
+        mass1Slider.addEventListener('input', function() {
+            mass1 = parseFloat(this.value);
+            mass1Value.textContent = mass1;
+        });
+        
+        mass2Slider.addEventListener('input', function() {
+            mass2 = parseFloat(this.value);
+            mass2Value.textContent = mass2;
+        });
+        
+        // Function to draw the double pendulum
+        function drawDoublePendulum() {
+            // Clear the canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Calculate the positions
+            const pivotX = canvas.width / 2;
+            const pivotY = 100;
+            
+            const x1 = pivotX + length1 * Math.sin(angle1);
+            const y1 = pivotY + length1 * Math.cos(angle1);
+            
+            const x2 = x1 + length2 * Math.sin(angle2);
+            const y2 = y1 + length2 * Math.cos(angle2);
+            
+            // Draw the first pendulum rod
+            ctx.beginPath();
+            ctx.moveTo(pivotX, pivotY);
+            ctx.lineTo(x1, y1);
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Draw the second pendulum rod
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Draw the pivot
+            ctx.beginPath();
+            ctx.arc(pivotX, pivotY, 5, 0, Math.PI * 2);
+            ctx.fillStyle = '#333';
+            ctx.fill();
+            
+            // Draw the first bob
+            ctx.beginPath();
+            ctx.arc(x1, y1, mass1, 0, Math.PI * 2);
+            ctx.fillStyle = '#0066cc';
+            ctx.fill();
+            
+            // Draw the second bob
+            ctx.beginPath();
+            ctx.arc(x2, y2, mass2, 0, Math.PI * 2);
+            ctx.fillStyle = '#cc0066';
+            ctx.fill();
+        }
+        
+        // Function to update the double pendulum physics
+        function updateDoublePendulum() {
+            // Calculate the physics for the double pendulum
+            // These equations are derived from the Lagrangian of the system
+            
+            const mu = 1 + mass1 / mass2;
+            
+            // Calculate numerators and denominators for angle accelerations
+            const num1 = -gravity * (2 * mass1 + mass2) * Math.sin(angle1) - mass2 * gravity * Math.sin(angle1 - 2 * angle2);
+            const num1b = -2 * Math.sin(angle1 - angle2) * mass2 * (angle2Velocity * angle2Velocity * length2 + angle1Velocity * angle1Velocity * length1 * Math.cos(angle1 - angle2));
+            const den1 = length1 * (2 * mass1 + mass2 - mass2 * Math.cos(2 * angle1 - 2 * angle2));
+            
+            const num2 = 2 * Math.sin(angle1 - angle2);
+            const num2b = (angle1Velocity * angle1Velocity * length1 * (mass1 + mass2) + gravity * (mass1 + mass2) * Math.cos(angle1) + angle2Velocity * angle2Velocity * length2 * mass2 * Math.cos(angle1 - angle2));
+            const den2 = length2 * (2 * mass1 + mass2 - mass2 * Math.cos(2 * angle1 - 2 * angle2));
+            
+            // Calculate angle accelerations
+            const angle1Acceleration = (num1 + num1b) / den1;
+            const angle2Acceleration = (num2 * num2b) / den2;
+            
+            // Update velocities and angles
+            angle1Velocity += angle1Acceleration * 0.05; // Time step
+            angle2Velocity += angle2Acceleration * 0.05; // Time step
+            
+            // Apply damping
+            angle1Velocity *= damping;
+            angle2Velocity *= damping;
+            
+            angle1 += angle1Velocity;
+            angle2 += angle2Velocity;
+            
+            // Draw the double pendulum
+            drawDoublePendulum();
+            
+            // Request the next animation frame
+            requestAnimationFrame(updateDoublePendulum);
+        }
+        
+        // Start the animation
+        updateDoublePendulum();
+    </script>
+</body>
+</html>

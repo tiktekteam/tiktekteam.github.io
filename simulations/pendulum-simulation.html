@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pendulum Simulation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        canvas {
+            border: 1px solid #ccc;
+            margin: 20px 0;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        input[type="range"] {
+            width: 200px;
+        }
+        a.back {
+            display: inline-block;
+            margin-top: 20px;
+            color: #0066cc;
+            text-decoration: none;
+        }
+        a.back:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>Pendulum Simulation</h1>
+    
+    <div class="controls">
+        <label for="length">Pendulum Length: </label>
+        <input type="range" id="length" min="50" max="200" value="100">
+        <span id="length-value">100</span>
+    </div>
+    
+    <div class="controls">
+        <label for="gravity">Gravity: </label>
+        <input type="range" id="gravity" min="1" max="20" value="9.8" step="0.1">
+        <span id="gravity-value">9.8</span>
+    </div>
+    
+    <canvas id="pendulum-canvas" width="600" height="400"></canvas>
+    
+    <p>This simulation demonstrates the motion of a simple pendulum under the influence of gravity.</p>
+    
+    <a href="../index.html" class="back">← Back to All Simulations</a>
+    
+    <script>
+        // Get the canvas and its context
+        const canvas = document.getElementById('pendulum-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Get the controls
+        const lengthSlider = document.getElementById('length');
+        const lengthValue = document.getElementById('length-value');
+        const gravitySlider = document.getElementById('gravity');
+        const gravityValue = document.getElementById('gravity-value');
+        
+        // Initial values
+        let length = 100;
+        let gravity = 9.8;
+        let angle = Math.PI / 4; // Initial angle (45 degrees)
+        let angleVelocity = 0;
+        let angleAcceleration = 0;
+        let damping = 0.995; // Damping factor
+        
+        // Update values when sliders change
+        lengthSlider.addEventListener('input', function() {
+            length = parseFloat(this.value);
+            lengthValue.textContent = length;
+        });
+        
+        gravitySlider.addEventListener('input', function() {
+            gravity = parseFloat(this.value);
+            gravityValue.textContent = gravity;
+        });
+        
+        // Function to draw the pendulum
+        function drawPendulum() {
+            // Clear the canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Calculate the position of the pendulum bob
+            const pivotX = canvas.width / 2;
+            const pivotY = 50;
+            const bobX = pivotX + length * Math.sin(angle);
+            const bobY = pivotY + length * Math.cos(angle);
+            
+            // Draw the pendulum rod
+            ctx.beginPath();
+            ctx.moveTo(pivotX, pivotY);
+            ctx.lineTo(bobX, bobY);
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Draw the pivot
+            ctx.beginPath();
+            ctx.arc(pivotX, pivotY, 5, 0, Math.PI * 2);
+            ctx.fillStyle = '#333';
+            ctx.fill();
+            
+            // Draw the bob
+            ctx.beginPath();
+            ctx.arc(bobX, bobY, 15, 0, Math.PI * 2);
+            ctx.fillStyle = '#0066cc';
+            ctx.fill();
+        }
+        
+        // Function to update the pendulum physics
+        function updatePendulum() {
+            // Calculate acceleration
+            angleAcceleration = -gravity / length * Math.sin(angle);
+            
+            // Update velocity and angle
+            angleVelocity += angleAcceleration;
+            angleVelocity *= damping; // Apply damping
+            angle += angleVelocity;
+            
+            // Draw the pendulum
+            drawPendulum();
+            
+            // Request the next animation frame
+            requestAnimationFrame(updatePendulum);
+        }
+        
+        // Start the animation
+        updatePendulum();
+    </script>
+</body>
+</html>
