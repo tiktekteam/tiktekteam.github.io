@@ -35,6 +35,8 @@ The list of simulations is automatically generated using:
 2. The workflow scans the directory for HTML files and creates/updates a `manifest.json` file
 3. The main page's JavaScript code fetches this manifest and builds the list dynamically
 
+If you're having issues with the GitHub Actions workflow not running or not generating the manifest file, see [SOLUTION_GITHUB_ACTIONS.md](SOLUTION_GITHUB_ACTIONS.md) for troubleshooting steps.
+
 ### File Structure
 
 ```

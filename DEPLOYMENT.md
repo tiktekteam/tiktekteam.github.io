@@ -45,6 +45,8 @@ Your site will be available directly at: `https://tiktekteam.github.io/`
 2. Verify that the "Generate Simulations Manifest" workflow has run successfully
 3. If it hasn't run automatically, you can manually trigger it by clicking on "Run workflow"
 
+For detailed instructions on enabling and troubleshooting GitHub Actions, see [SOLUTION_GITHUB_ACTIONS.md](SOLUTION_GITHUB_ACTIONS.md).
+
 ## Troubleshooting
 
 If your site doesn't appear or the manifest isn't being generated:
