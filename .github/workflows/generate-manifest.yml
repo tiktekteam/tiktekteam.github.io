@@ -22,29 +22,25 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd temp-vite
           npm install
 
       - name: Create simulations directory
         run: |
-          cd temp-vite
           mkdir -p public/simulations
-          cp -r ../simulations/* public/simulations/ || echo "No simulations directory found"
+          cp -r simulations/* public/simulations/ || echo "No simulations directory found"
 
       - name: Generate manifest.json
         run: |
-          cd temp-vite
           # Run the manifest generator script
           node scripts/generateManifest.js
 
       - name: Build Vite React app
         run: |
-          cd temp-vite
           npm run build
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages
-          folder: temp-vite/dist
+          folder: dist
           clean: true
