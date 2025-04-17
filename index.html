@@ -7,6 +7,28 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Tiktekteam Site</title>
+    <!-- Add version number to help with caching issues -->
+    <meta name="version" content="1.0.1">
+    <!-- Force page reload if version changes -->
+    <script>
+        // Check if the page needs a hard refresh
+        (function() {
+            try {
+                const currentVersion = '1.0.1'; // Must match version in meta tag
+                const storedVersion = localStorage.getItem('siteVersion');
+
+                if (storedVersion && storedVersion !== currentVersion) {
+                    console.log('Version changed from ' + storedVersion + ' to ' + currentVersion + '. Forcing refresh.');
+                    localStorage.setItem('siteVersion', currentVersion);
+                    window.location.reload(true); // Force reload from server
+                } else {
+                    localStorage.setItem('siteVersion', currentVersion);
+                }
+            } catch (e) {
+                console.error('Version check error:', e);
+            }
+        })();
+    </script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -55,6 +77,42 @@
         <!-- The list will be populated by JavaScript -->
         <li>Loading simulations...</li>
     </ul>
+
+    <!-- Register Service Worker for better cache control -->
+    <script>
+        // Register service worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(registration => {
+                        console.log('Service Worker registered with scope:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.error('Service Worker registration failed:', error);
+                    });
+            });
+
+            // Function to clear cache and reload page
+            window.clearCacheAndReload = function() {
+                if (navigator.serviceWorker.controller) {
+                    // Create a message channel
+                    const messageChannel = new MessageChannel();
+                    messageChannel.port1.onmessage = event => {
+                        console.log('Cache cleared:', event.data.result);
+                        window.location.reload(true);
+                    };
+
+                    // Send message to service worker to clear cache
+                    navigator.serviceWorker.controller.postMessage({
+                        type: 'CLEAR_CACHE'
+                    }, [messageChannel.port2]);
+                } else {
+                    console.log('No active service worker found, reloading page...');
+                    window.location.reload(true);
+                }
+            };
+        }
+    </script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -175,7 +233,16 @@
             // Add event listener to the refresh button
             document.getElementById('refresh-button').addEventListener('click', function() {
                 console.log('Manually refreshing simulations list...');
-                loadSimulations(true);
+
+                // If service worker is available, use it to clear cache and reload
+                if (window.clearCacheAndReload) {
+                    console.log('Using service worker to clear cache and reload...');
+                    window.clearCacheAndReload();
+                } else {
+                    // Fallback to just refreshing the simulations list
+                    console.log('Service worker not available, just refreshing list...');
+                    loadSimulations(true);
+                }
             });
 
             // Load the simulations when the page loads

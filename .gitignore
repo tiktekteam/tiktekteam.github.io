@@ -70,3 +70,5 @@ _site/
 
 # Yarn Integrity file
 .yarn-integrity
+
+test-*

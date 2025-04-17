@@ -41,9 +41,14 @@ If you're having issues with the GitHub Actions workflow not running or not gene
 
 ```
 ├── index.html              # Main page that lists all simulations
+├── index-redirect.html     # Alternative entry point with cache clearing
+├── service-worker.js       # Service worker for cache control
 ├── _config.yml             # GitHub Pages configuration
 ├── README.md               # This documentation
 ├── generateManifest.js     # Node.js script to generate manifest locally
+├── test-manifest.js        # Test script for manifest validation
+├── test-cache-busting.js   # Test script for cache-busting mechanisms
+├── test-service-worker.js  # Test script for service worker implementation
 ├── .github/
 │   └── workflows/
 │       └── generate-manifest.yml  # GitHub Actions workflow
@@ -54,6 +59,17 @@ If you're having issues with the GitHub Actions workflow not running or not gene
     └── [other-simulation].html
 ```
 
+### Cache-Busting Implementation
+
+To ensure users always see the latest content, this site implements several cache-busting mechanisms:
+
+1. **Service Worker**: Intercepts network requests and ensures index.html and manifest.json are always fetched from the network
+2. **Version Checking**: The site includes a version number that triggers a refresh when changed
+3. **Cache-Control Headers**: HTTP headers instruct browsers not to cache critical files
+4. **Query Parameters**: Dynamic cache-busting parameters are added to all URLs
+5. **LocalStorage Clearing**: The redirect page clears localStorage to reset any stored state
+6. **Periodic Auto-Refresh**: The site automatically refreshes the simulations list every 5 minutes
+
 ## Local Development
 
 To test this site locally:
@@ -61,6 +77,15 @@ To test this site locally:
 1. Clone the repository
 2. Open `index.html` in your browser
 3. The page should display a list of all simulations in the `simulations` directory
+
+### Ensuring You See the Latest Version
+
+This site implements several cache-busting mechanisms to ensure you always see the latest content:
+
+1. **Refresh Button**: Click the "Refresh Simulations" button on the main page to force a refresh of the simulations list
+2. **Alternative Entry Point**: Use `index-redirect.html` to load a fresh version of the site with cache clearing
+3. **Manual Cache Clearing**: In your browser, use Ctrl+F5 (Windows/Linux) or Cmd+Shift+R (Mac) to force a full refresh
+4. **Browser Developer Tools**: Open your browser's developer tools, go to the Application/Storage tab, and clear site data
 
 ### Generating Manifest Locally
 
