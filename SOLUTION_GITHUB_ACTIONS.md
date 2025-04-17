@@ -1,13 +1,13 @@
-# GitHub Actions Troubleshooting Guide for React App
+# GitHub Actions Troubleshooting Guide for React + Vite App
 
-This document provides solutions for common issues with the GitHub Actions workflow that builds and deploys the React application.
+This document provides solutions for common issues with the GitHub Actions workflow that builds and deploys the React + Vite application.
 
 ## Common Issues and Solutions
 
 ### 1. Workflow Not Running
 
 **Symptoms:**
-- The "Build and Deploy React App" workflow doesn't run when you push changes
+- The "Build and Deploy Vite React App" workflow doesn't run when you push changes
 - No workflow runs appear in the Actions tab
 
 **Solutions:**

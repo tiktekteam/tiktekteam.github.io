@@ -13,7 +13,7 @@ const SimulationFrame = () => {
   const cacheBuster = location.search || `?v=${new Date().getTime()}`;
   
   // The full URL to the simulation
-  const simulationUrl = `${process.env.PUBLIC_URL}/simulations/${name}${cacheBuster}`;
+  const simulationUrl = `/simulations/${name}${cacheBuster}`;
 
   // Handle back button click
   const handleBack = () => {

@@ -1,73 +1,56 @@
-# Node.js
-node_modules/
-npm-debug.log
-yarn-debug.log
-yarn-error.log
-package-lock.json
-yarn.lock
-
-# IDE - JetBrains (IntelliJ, WebStorm, etc.)
-.idea/
-
-# IDE - VS Code
-.vscode/
-*.code-workspace
-.history/
-
-# Operating System Files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
 # Logs
 logs
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Build outputs
+dist
+dist-ssr
+build
+out
+.output
+
+# Testing
+coverage
+.nyc_output
 
 # Environment variables
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
+!.env.example
+*.local
 
-# Build directories
-/dist/
-/build/
-/out/
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
-# Temporary files
-*.tmp
-*.temp
-.cache/
-
-# GitHub Pages specific
-_site/
-.jekyll-cache/
-.jekyll-metadata
-
-# Dependency directories
-/jspm_packages/
-/bower_components/
-
-# Optional npm cache directory
-.npm
-
-# Optional eslint cache
+# Cache and temporary files
+.cache
+.temp
+.tmp
 .eslintcache
+.stylelintcache
+.parcel-cache
 
-# Optional REPL history
-.node_repl_history
-
-# Output of 'npm pack'
-*.tgz
-
-# Yarn Integrity file
-.yarn-integrity
-
+# Misc
+.github/.temp
+*.tsbuildinfo
+.vercel
+.netlify

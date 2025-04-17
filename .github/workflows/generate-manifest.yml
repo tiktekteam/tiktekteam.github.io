@@ -1,4 +1,4 @@
-name: Build and Deploy React App
+name: Build and Deploy Vite React App
 
 on:
   push:
@@ -13,32 +13,38 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '18'
 
       - name: Install dependencies
-        run: npm install
+        run: |
+          cd temp-vite
+          npm install
 
       - name: Create simulations directory
         run: |
+          cd temp-vite
           mkdir -p public/simulations
-          cp -r simulations/* public/simulations/
+          cp -r ../simulations/* public/simulations/ || echo "No simulations directory found"
 
       - name: Generate manifest.json
         run: |
+          cd temp-vite
           # Run the manifest generator script
           node scripts/generateManifest.js
 
-      - name: Build React app
-        run: npm run build
+      - name: Build Vite React app
+        run: |
+          cd temp-vite
+          npm run build
 
       - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@4.1.5
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages
-          folder: build
+          folder: temp-vite/dist
           clean: true

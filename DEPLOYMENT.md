@@ -1,6 +1,6 @@
-# Deploying the React Math Simulations Gallery to GitHub Pages
+# Deploying the React + Vite Math Simulations Gallery to GitHub Pages
 
-Follow these steps to deploy this React-based Math Simulations Gallery to your GitHub Pages root domain:
+Follow these steps to deploy this React + Vite-based Math Simulations Gallery to your GitHub Pages root domain:
 
 ## Deployment Steps
 
@@ -14,6 +14,9 @@ Create a new repository specifically named `tiktekteam.github.io` (where "tiktek
 # Clone the repository
 git clone https://github.com/tiktekteam/tiktekteam.github.io.git
 cd tiktekteam.github.io
+
+# Navigate to the Vite project directory
+cd temp-vite
 
 # Install dependencies
 npm install
@@ -31,11 +34,11 @@ npm install
    npm install --save-dev gh-pages
    ```
 
-3. Add deployment scripts to package.json:
+3. Add deployment scripts to package.json (these should already be in place):
    ```json
    "scripts": {
      "predeploy": "npm run build",
-     "deploy": "gh-pages -d build"
+     "deploy": "gh-pages -d dist"
    }
    ```
 
@@ -43,11 +46,17 @@ npm install
 
 The repository already includes a GitHub Actions workflow file (`.github/workflows/generate-manifest.yml`) that:
 
-1. Builds the React application
+1. Builds the Vite React application
 2. Generates the simulations manifest
 3. Deploys to GitHub Pages
 
-Make sure this file is present and correctly configured.
+Make sure this file is present and correctly configured. The workflow is set up to:
+- Navigate to the temp-vite directory
+- Install dependencies
+- Copy simulation files to the public directory
+- Generate the manifest.json file
+- Build the Vite application
+- Deploy the dist directory to the gh-pages branch
 
 ### 5. Push Your Changes
 
@@ -65,7 +74,7 @@ git push -u origin main
 ### 6. Verify GitHub Actions
 
 1. Go to the "Actions" tab in your repository
-2. Verify that the "Build and Deploy React App" workflow has run successfully
+2. Verify that the "Build and Deploy Vite React App" workflow has run successfully
 3. If it hasn't run automatically, you can manually trigger it by clicking on "Run workflow"
 
 For detailed instructions on enabling and troubleshooting GitHub Actions, see [SOLUTION_GITHUB_ACTIONS.md](SOLUTION_GITHUB_ACTIONS.md).

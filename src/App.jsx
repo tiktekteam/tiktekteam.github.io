@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { HashRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import SimulationList from './components/SimulationList';
 import SimulationFrame from './components/SimulationFrame';
 import './App.css';
@@ -23,7 +23,7 @@ function App() {
 
     try {
       const cacheBuster = generateCacheBuster();
-      const manifestUrl = `${process.env.PUBLIC_URL}/simulations/manifest.json?${cacheBuster}`;
+      const manifestUrl = `/simulations/manifest.json?${cacheBuster}`;
 
       console.log(`Fetching manifest from: ${manifestUrl}`);
 

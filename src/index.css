@@ -1,9 +1,18 @@
+:root {
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 body {
   font-family: Arial, sans-serif;
   max-width: 800px;
   margin: 0 auto;
   padding: 20px;
   line-height: 1.6;
+  background-color: #ffffff;
+  color: #333;
 }
 
 h1 {
@@ -51,6 +60,11 @@ button {
 
 button:hover {
   background-color: #0055aa;
+}
+
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
 }
 
 .refresh-container {
