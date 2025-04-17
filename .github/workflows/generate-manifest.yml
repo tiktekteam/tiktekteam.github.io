@@ -3,8 +3,6 @@ name: Generate Simulations Manifest
 on:
   push:
     branches: [ main ]
-    paths:
-      - 'simulations/**'
   workflow_dispatch:  # Allow manual triggering
 
 jobs:
@@ -22,30 +20,8 @@ jobs:
 
       - name: Generate manifest.json
         run: |
-          # Create a script to generate the manifest
-          cat > generate-manifest.js << 'EOF'
-          const fs = require('fs');
-          const path = require('path');
-
-          // Path to the simulations directory
-          const simulationsDir = path.join(process.cwd(), 'simulations');
-          const manifestPath = path.join(simulationsDir, 'manifest.json');
-
-          // Get all HTML files in the simulations directory
-          const files = fs.readdirSync(simulationsDir)
-            .filter(file => file.endsWith('.html'))
-            .sort();
-
-          console.log(`Found ${files.length} simulation files`);
-          files.forEach(file => console.log(`- ${file}`));
-
-          // Write the manifest file
-          fs.writeFileSync(manifestPath, JSON.stringify(files, null, 2));
-          console.log(`Manifest written to ${manifestPath}`);
-          EOF
-
-          # Run the script
-          node generate-manifest.js
+          # Run the existing generateManifest.js script
+          node generateManifest.js
 
       - name: Commit and push if changed
         run: |
