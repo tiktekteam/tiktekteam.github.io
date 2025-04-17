@@ -1,6 +1,6 @@
-# Deploying to GitHub Pages
+# Deploying the React Math Simulations Gallery to GitHub Pages
 
-Follow these steps to deploy this Math Simulations Gallery to your GitHub Pages root domain:
+Follow these steps to deploy this React-based Math Simulations Gallery to your GitHub Pages root domain:
 
 ## Deployment Steps
 
@@ -8,53 +8,82 @@ Follow these steps to deploy this Math Simulations Gallery to your GitHub Pages 
 
 Create a new repository specifically named `tiktekteam.github.io` (where "tiktekteam" is your actual GitHub username).
 
-### 2. Push to GitHub
+### 2. Clone and Set Up the Repository
 
 ```bash
-# Initialize git repository if not already done
-git init
+# Clone the repository
+git clone https://github.com/tiktekteam/tiktekteam.github.io.git
+cd tiktekteam.github.io
 
+# Install dependencies
+npm install
+```
+
+### 3. Configure for GitHub Pages Deployment
+
+1. Make sure your package.json has the correct homepage field:
+   ```json
+   "homepage": "https://tiktekteam.github.io",
+   ```
+
+2. Ensure you have the gh-pages package installed:
+   ```bash
+   npm install --save-dev gh-pages
+   ```
+
+3. Add deployment scripts to package.json:
+   ```json
+   "scripts": {
+     "predeploy": "npm run build",
+     "deploy": "gh-pages -d build"
+   }
+   ```
+
+### 4. Set Up GitHub Actions for Automatic Deployment
+
+The repository already includes a GitHub Actions workflow file (`.github/workflows/generate-manifest.yml`) that:
+
+1. Builds the React application
+2. Generates the simulations manifest
+3. Deploys to GitHub Pages
+
+Make sure this file is present and correctly configured.
+
+### 5. Push Your Changes
+
+```bash
 # Add all files
 git add .
 
 # Commit the changes
-git commit -m "Initial commit with Math Simulations Gallery"
-
-# Add your GitHub repository as remote
-git remote add origin https://github.com/tiktekteam/tiktekteam.github.io.git
+git commit -m "Set up React Math Simulations Gallery"
 
 # Push to GitHub
 git push -u origin main
 ```
 
-### 3. Enable GitHub Pages
-
-1. Go to your repository on GitHub
-2. Click on "Settings"
-3. Scroll down to the "GitHub Pages" section
-4. Under "Source", select "main" branch
-5. Click "Save"
-
-### 4. Access Your Site
-
-Your site will be available directly at: `https://tiktekteam.github.io/`
-
-## 5. Verify GitHub Actions
+### 6. Verify GitHub Actions
 
 1. Go to the "Actions" tab in your repository
-2. Verify that the "Generate Simulations Manifest" workflow has run successfully
+2. Verify that the "Build and Deploy React App" workflow has run successfully
 3. If it hasn't run automatically, you can manually trigger it by clicking on "Run workflow"
 
 For detailed instructions on enabling and troubleshooting GitHub Actions, see [SOLUTION_GITHUB_ACTIONS.md](SOLUTION_GITHUB_ACTIONS.md).
 
+### 7. Access Your Site
+
+Your site will be available directly at: `https://tiktekteam.github.io/`
+
 ## Troubleshooting
 
-If your site doesn't appear or the manifest isn't being generated:
+If your site doesn't appear or doesn't update:
 
 1. Check that your repository is public (GitHub Pages requires this for free accounts)
 2. Verify that the GitHub Actions workflow has the necessary permissions
 3. Make sure your branch name matches what's specified in the workflow file (main)
 4. Check the Actions tab for any error messages
+5. Ensure the workflow is deploying to the gh-pages branch
+6. Verify that GitHub Pages is set to deploy from the gh-pages branch in your repository settings
 
 ## Adding Custom Domain (Optional)
 
@@ -63,4 +92,5 @@ If you want to use a custom domain:
 1. Go to repository Settings > Pages
 2. Under "Custom domain", enter your domain name
 3. Update DNS settings with your domain provider
-4. Add a CNAME file to your repository root with your domain name
+4. Add a CNAME file to your `public` directory with your domain name
+5. Update the homepage field in package.json to your custom domain

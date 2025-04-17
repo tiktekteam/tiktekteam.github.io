@@ -71,7 +71,3 @@ _site/
 # Yarn Integrity file
 .yarn-integrity
 
-# Cache-busting script
-bust-cache.js
-
-

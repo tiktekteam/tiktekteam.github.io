@@ -2,8 +2,8 @@ const fs = require('fs');
 const path = require('path');
 
 // Configuration
-const simulationsDir = './simulations';
-const outputFile = './simulations/manifest.json';
+const simulationsDir = './public/simulations';
+const outputFile = './public/simulations/manifest.json';
 
 // Function to generate the manifest file
 function generateManifest() {
