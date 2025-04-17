@@ -45,6 +45,8 @@ If you're having issues with the GitHub Actions workflow not running or not gene
 ├── service-worker.js       # Service worker for cache control
 ├── _config.yml             # GitHub Pages configuration
 ├── README.md               # This documentation
+├── DEPLOYMENT.md           # Instructions for deploying to GitHub Pages
+├── SOLUTION_GITHUB_ACTIONS.md # Troubleshooting guide for GitHub Actions
 ├── generateManifest.js     # Node.js script to generate manifest locally
 ├── test-manifest.js        # Test script for manifest validation
 ├── test-cache-busting.js   # Test script for cache-busting mechanisms
@@ -54,8 +56,8 @@ If you're having issues with the GitHub Actions workflow not running or not gene
 │       └── generate-manifest.yml  # GitHub Actions workflow
 └── simulations/
     ├── manifest.json       # Auto-generated list of simulations
-    ├── pendulum-simulation.html
-    ├── double-pendulum-simulation.html
+    ├── parabole-meets-different-lines.html
+    ├── subtracting-negative-number.html
     └── [other-simulation].html
 ```
 
