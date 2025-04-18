@@ -10,7 +10,8 @@ export default defineConfig({
       name: 'configure-jsx-mime-type',
       configureServer(server) {
         server.middlewares.use((req, res, next) => {
-          if (req.url.endsWith('.jsx')) {
+          // Check for both .jsx extension and potential query parameters
+          if (req.url.includes('.jsx')) {
             res.setHeader('Content-Type', 'application/javascript');
           }
           next();
@@ -18,7 +19,8 @@ export default defineConfig({
       },
       configurePreviewServer(server) {
         server.middlewares.use((req, res, next) => {
-          if (req.url.endsWith('.jsx')) {
+          // Check for both .jsx extension and potential query parameters
+          if (req.url.includes('.jsx')) {
             res.setHeader('Content-Type', 'application/javascript');
           }
           next();
@@ -38,6 +40,16 @@ export default defineConfig({
       loader: {
         '.js': 'jsx',
         '.jsx': 'jsx'
+      }
+    }
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        // Ensure JSX files are treated as JavaScript modules
+        entryFileNames: 'assets/[name].[hash].js',
+        chunkFileNames: 'assets/[name].[hash].js',
+        assetFileNames: 'assets/[name].[hash].[ext]'
       }
     }
   },
