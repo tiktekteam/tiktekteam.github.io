@@ -5,7 +5,16 @@ import { jsxExtensionFix } from './scripts/vite-plugins/jsx-extension-fix';
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
-    react(),
+    react({
+      // Ensure all JSX is transformed to JS
+      jsxRuntime: 'automatic',
+      babel: {
+        plugins: [
+          // Force JSX files to be transformed completely
+          ['@babel/plugin-transform-react-jsx', { runtime: 'automatic' }],
+        ],
+      },
+    }),
     jsxExtensionFix(),
     // Custom plugin to handle JSX MIME types
     {
@@ -26,6 +35,19 @@ export default defineConfig({
             res.setHeader('Content-Type', 'application/javascript');
           }
           next();
+        });
+      },
+    },
+    // Additional plugin to rename all JSX files to JS in output
+    {
+      name: 'force-jsx-to-js',
+      generateBundle(options, bundle) {
+        Object.keys(bundle).forEach((fileName) => {
+          if (fileName.endsWith('.jsx')) {
+            const newFileName = fileName.replace('.jsx', '.js');
+            bundle[newFileName] = bundle[fileName];
+            delete bundle[fileName];
+          }
         });
       },
     },
@@ -50,9 +72,9 @@ export default defineConfig({
     rollupOptions: {
       output: {
         // Ensure JSX files are treated as JavaScript modules
-        entryFileNames: 'assets/[name].[hash].js',
-        chunkFileNames: 'assets/[name].[hash].js',
-        assetFileNames: 'assets/[name].[hash].[ext]',
+        entryFileNames: 'assets/[name].js', // Remove [hash] for easier debugging
+        chunkFileNames: 'assets/[name].js', // Remove [hash] for easier debugging
+        assetFileNames: 'assets/[name].[ext]', // Remove [hash] for easier debugging
       },
     },
     // Force JSX files to be output as .js files

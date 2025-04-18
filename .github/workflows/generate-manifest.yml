@@ -39,7 +39,7 @@ jobs:
         run: |
           npm run build
 
-      - name: Add special configuration files for GitHub Pages
+      - name: Fix MIME type issues
         run: |
           # Ensure .nojekyll is in the build output to disable Jekyll processing
           touch dist/.nojekyll
@@ -59,10 +59,27 @@ jobs:
             echo "  Content-Type: application/javascript" >> dist/_headers
           fi
 
+          # Copy vercel.json for vercel deployments
+          cp vercel.json dist/vercel.json || echo "No vercel.json found"
+
           # Create a custom 404 page if it doesn't exist
           if [ ! -f dist/404.html ]; then
             cp dist/index.html dist/404.html
           fi
+
+          # Find any remaining JSX files and rename them to JS
+          find dist -name "*.jsx" | while read file; do
+            js_file="${file%.jsx}.js"
+            echo "Converting $file to $js_file"
+            cp "$file" "$js_file"
+            rm "$file"
+          done
+
+          # Ensure all JS files have proper content-type in .htaccess
+          echo "AddType application/javascript .js .jsx .mjs" > dist/.htaccess
+          echo "RewriteEngine On" >> dist/.htaccess
+          echo "RewriteCond %{REQUEST_FILENAME} !-f" >> dist/.htaccess
+          echo "RewriteRule ^ index.html [QSA,L]" >> dist/.htaccess
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
@@ -73,3 +90,5 @@ jobs:
           clean-exclude: |
             .nojekyll
             _headers
+            .htaccess
+            CNAME
