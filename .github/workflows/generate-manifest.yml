@@ -2,8 +2,8 @@ name: Build and Deploy Vite React App
 
 on:
   push:
-    branches: [ main ]
-  workflow_dispatch:  # Allow manual triggering
+    branches: [main]
+  workflow_dispatch: # Allow manual triggering
 
 jobs:
   build-and-deploy:
@@ -19,6 +19,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'
+          cache: 'npm'
 
       - name: Install dependencies
         run: |
@@ -38,9 +39,37 @@ jobs:
         run: |
           npm run build
 
+      - name: Add special configuration files for GitHub Pages
+        run: |
+          # Ensure .nojekyll is in the build output to disable Jekyll processing
+          touch dist/.nojekyll
+
+          # Create the necessary headers file for MIME types if it doesn't exist in dist
+          if [ ! -f dist/_headers ]; then
+            echo "/*" > dist/_headers
+            echo "  X-Content-Type-Options: nosniff" >> dist/_headers
+            echo "" >> dist/_headers
+            echo "/*.js" >> dist/_headers
+            echo "  Content-Type: application/javascript" >> dist/_headers
+            echo "" >> dist/_headers
+            echo "/*.jsx" >> dist/_headers
+            echo "  Content-Type: application/javascript" >> dist/_headers
+            echo "" >> dist/_headers
+            echo "/*.mjs" >> dist/_headers
+            echo "  Content-Type: application/javascript" >> dist/_headers
+          fi
+
+          # Create a custom 404 page if it doesn't exist
+          if [ ! -f dist/404.html ]; then
+            cp dist/index.html dist/404.html
+          fi
+
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages
           folder: dist
           clean: true
+          clean-exclude: |
+            .nojekyll
+            _headers
