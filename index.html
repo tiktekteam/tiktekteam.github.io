@@ -351,10 +351,10 @@
             });
         }
 
-        // This script will run when the page loads to check for new simulations
+        // This script will run when the page loads to load simulations from the JSON file
         document.addEventListener('DOMContentLoaded', function() {
             // Function to create a simulation card
-            function createSimulationCard(href, title) {
+            function createSimulationCard(href, title, description) {
                 const card = document.createElement('div');
                 card.className = 'simulation-card';
 
@@ -362,11 +362,16 @@
                 link.href = href;
                 link.textContent = title;
 
+                // Add description as a title attribute for tooltip
+                if (description) {
+                    link.setAttribute('title', description);
+                }
+
                 card.appendChild(link);
                 return card;
             }
 
-            // Function to fetch and display simulations
+            // Function to fetch and display simulations from the JSON file
             async function loadSimulations() {
                 try {
                     const simulationsGrid = document.querySelector('.simulations-grid');
@@ -374,232 +379,57 @@
                     // Clear existing cards
                     simulationsGrid.innerHTML = '';
 
-                    // Get the current hostname and protocol for GitHub Pages compatibility
-                    const baseUrl = window.location.origin;
+                    // Fetch the simulations.json file
+                    const response = await fetch('simulations.json');
 
-                    // Fetch the list of HTML files in the simulations directory
-                    try {
-                        // First, try to use the GitHub API if we're on GitHub Pages
-                        // Extract username and repo name from the URL if on GitHub Pages
-                        const ghPagesRegex = /https?:\/\/([^.]+)\.github\.io\/([^/]+)/;
-                        const ghMatch = window.location.href.match(ghPagesRegex);
-
-                        if (ghMatch) {
-                            const username = ghMatch[1];
-                            const repoName = ghMatch[2];
-                            const path = 'simulations';
-
-                            console.log(`Detected GitHub Pages: ${username}/${repoName}`);
-
-                            // Use GitHub API to get directory contents
-                            const apiUrl = `https://api.github.com/repos/${username}/${repoName}/contents/${path}`;
-                            const response = await fetch(apiUrl);
-
-                            if (response.ok) {
-                                const files = await response.json();
-
-                                // Process each HTML file
-                                const processPromises = files
-                                    .filter(file => file.name.endsWith('.html'))
-                                    .map(async file => {
-                                        try {
-                                            // Fetch the HTML file to extract its title
-                                            const htmlResponse = await fetch(file.download_url);
-                                            const html = await htmlResponse.text();
-
-                                            // Parse the HTML to get the title
-                                            const parser = new DOMParser();
-                                            const doc = parser.parseFromString(html, 'text/html');
-                                            const title = doc.querySelector('title')?.textContent || file.name;
-
-                                            // Create and add the card
-                                            const card = createSimulationCard(`${path}/${file.name}`, title);
-                                            simulationsGrid.appendChild(card);
-                                        } catch (err) {
-                                            console.error(`Error processing file ${file.name}:`, err);
-                                            // Add card with filename as fallback
-                                            const card = createSimulationCard(`${path}/${file.name}`, file.name);
-                                            simulationsGrid.appendChild(card);
-                                        }
-                                    });
-
-                                await Promise.all(processPromises);
-                                return; // Exit if GitHub API method succeeded
-                            }
-                        }
-                    } catch (githubError) {
-                        console.warn('GitHub API method failed, falling back to known simulations:', githubError);
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch simulations.json: ${response.status} ${response.statusText}`);
                     }
 
-                    // Fallback: Try to dynamically discover simulation files
-                    console.log('Attempting to dynamically discover simulation files...');
+                    const data = await response.json();
 
-                    // Start with known simulations as a base
-                    const knownSimulations = [
-                        { path: 'simulations/parabole-meets-different-lines.html', title: 'פרבולה פוגשת ישרים שונים' },
-                        { path: 'simulations/subtracting-negative-number.html', title: 'חיסור במספר שלילי' },
-                    ];
-
-                    // Check if known simulations still exist before adding them
-                    const knownSimulationPromises = knownSimulations.map(sim => {
-                        // Extract the filename from the path
-                        const fileName = sim.path.split('/').pop();
-                        // Use the existing checkAndAddFile function to check if the file exists
-                        return checkAndAddFile(fileName, existingPaths, simulationsGrid);
-                    });
-
-                    // Wait for all known simulations to be checked
-                    await Promise.all(knownSimulationPromises);
-
-                    // Then try to discover additional simulations
-                    discoverSimulations();
-                } catch (error) {
-                    console.error('Error loading simulations:', error);
-                }
-            }
-
-            // Function to dynamically discover simulation files
-            async function discoverSimulations() {
-                try {
-                    const simulationsGrid = document.querySelector('.simulations-grid');
-                    const existingPaths = new Set(
-                        Array.from(simulationsGrid.querySelectorAll('a')).map(a => a.getAttribute('href'))
-                    );
-
-                    // Common HTML file extensions to check
-                    const fileExtensions = ['.html', '.htm'];
-
-                    // Try to discover all HTML files in the simulations directory
-                    const discoveryMethods = [
-                        discoverFilesUsingDirectoryListing,
-                        discoverFilesUsingCommonNames,
-                        discoverFilesUsingPatterns
-                    ];
-
-                    // Execute each discovery method
-                    for (const method of discoveryMethods) {
-                        await method(existingPaths, simulationsGrid);
+                    if (!data || !data.simulations || !Array.isArray(data.simulations)) {
+                        throw new Error('Invalid simulations.json format');
                     }
 
-                    // Helper function to discover files using directory listing
-                    async function discoverFilesUsingDirectoryListing(existingPaths, simulationsGrid) {
-                        try {
-                            // Try to fetch a directory listing if available
-                            const response = await fetch('simulations/');
+                    console.log(`Loaded ${data.simulations.length} simulations from simulations.json`);
 
-                            if (response.ok) {
-                                const html = await response.text();
-
-                                // Parse the HTML to look for links to HTML files
-                                const parser = new DOMParser();
-                                const doc = parser.parseFromString(html, 'text/html');
-                                const links = doc.querySelectorAll('a');
-
-                                // Check each link to see if it points to an HTML file
-                                for (const link of links) {
-                                    const href = link.getAttribute('href');
-                                    if (href && fileExtensions.some(ext => href.toLowerCase().endsWith(ext))) {
-                                        // Extract the filename
-                                        const fileName = href.split('/').pop();
-                                        await checkAndAddFile(fileName, existingPaths, simulationsGrid);
-                                    }
-                                }
-                            }
-                        } catch (error) {
-                            console.log('Directory listing not available:', error.message);
-                        }
-                    }
-
-                    // Helper function to discover files using common simulation names
-                    async function discoverFilesUsingCommonNames(existingPaths, simulationsGrid) {
-                        // Check for common simulation names
-                        const commonNames = [
-                            'simulation', 'demo', 'interactive', 'example', 'practice',
-                            'math', 'physics', 'chemistry', 'biology', 'science',
-                            'algebra', 'geometry', 'calculus', 'statistics', 'probability',
-                            'mechanics', 'electricity', 'magnetism', 'optics', 'thermodynamics',
-                            'molecules', 'atoms', 'cells', 'genetics', 'ecology'
-                        ];
-
-                        for (const name of commonNames) {
-                            for (const ext of fileExtensions) {
-                                await checkAndAddFile(`${name}${ext}`, existingPaths, simulationsGrid);
-                            }
-                        }
-                    }
-
-                    // Helper function to discover files using patterns (including test files)
-                    async function discoverFilesUsingPatterns(existingPaths, simulationsGrid) {
-                        // Check for numbered files (test1.html, simulation2.html, etc.)
-                        const prefixes = ['test', 'simulation', 'demo', 'example'];
-
-                        for (const prefix of prefixes) {
-                            for (let i = 1; i <= 20; i++) {
-                                for (const ext of fileExtensions) {
-                                    await checkAndAddFile(`${prefix}${i}${ext}`, existingPaths, simulationsGrid);
-                                }
-                            }
-                        }
-
-                        // Check for files with date patterns (simulation-2023-01.html, etc.)
-                        const currentYear = new Date().getFullYear();
-                        for (let year = 2020; year <= currentYear; year++) {
-                            for (let month = 1; month <= 12; month++) {
-                                const monthStr = month.toString().padStart(2, '0');
-                                for (const ext of fileExtensions) {
-                                    await checkAndAddFile(`simulation-${year}-${monthStr}${ext}`, existingPaths, simulationsGrid);
-                                }
-                            }
-                        }
-                    }
-                } catch (error) {
-                    console.error('Error discovering simulations:', error);
-                }
-            }
-
-            // Helper function to check if a file exists and add it to the grid
-            async function checkAndAddFile(fileName, existingPaths, simulationsGrid) {
-                const filePath = `simulations/${fileName}`;
-
-                // Skip if this file is already in the grid
-                if (existingPaths.has(filePath)) {
-                    console.log(`File ${filePath} already in grid, skipping`);
-                    return false;
-                }
-
-                try {
-                    // Try to fetch the file to see if it exists
-                    const response = await fetch(filePath, { method: 'HEAD' });
-
-                    if (response.ok) {
-                        console.log(`Discovered new simulation file: ${filePath}`);
-
-                        // Fetch the full file to extract the title
-                        const htmlResponse = await fetch(filePath);
-                        const html = await htmlResponse.text();
-
-                        // Parse the HTML to get the title
-                        const parser = new DOMParser();
-                        const doc = parser.parseFromString(html, 'text/html');
-                        const title = doc.querySelector('title')?.textContent || fileName;
-
-                        // Create and add the card
-                        const card = createSimulationCard(filePath, title);
+                    // Create a card for each simulation
+                    data.simulations.forEach(simulation => {
+                        const card = createSimulationCard(
+                            simulation.path, 
+                            simulation.title, 
+                            simulation.description
+                        );
                         simulationsGrid.appendChild(card);
 
                         // Update the service worker cache if possible
-                        updateServiceWorkerCache(filePath);
+                        updateServiceWorkerCache(simulation.path);
+                    });
 
-                        // Add to existing paths to avoid duplicates
-                        existingPaths.add(filePath);
-
-                        return true; // File was found and added
-                    }
                 } catch (error) {
-                    console.log(`File ${filePath} not found or error fetching: ${error.message}`);
-                }
+                    console.error('Error loading simulations:', error);
 
-                return false; // File was not found or not added
+                    // Fallback to hardcoded simulations if JSON file fails
+                    const fallbackSimulations = [
+                        { 
+                            path: 'simulations/parabole-meets-different-lines.html', 
+                            title: 'פרבולה פוגשת ישרים שונים' 
+                        },
+                        { 
+                            path: 'simulations/subtracting-negative-number.html', 
+                            title: 'חיסור במספר שלילי' 
+                        }
+                    ];
+
+                    console.log('Falling back to hardcoded simulations list');
+
+                    const simulationsGrid = document.querySelector('.simulations-grid');
+                    fallbackSimulations.forEach(sim => {
+                        const card = createSimulationCard(sim.path, sim.title);
+                        simulationsGrid.appendChild(card);
+                    });
+                }
             }
 
             // Function to update the service worker cache with a new file
@@ -614,8 +444,37 @@
                 }
             }
 
+            // Function to update the service worker cache from the JSON file
+            function updateCacheFromJson() {
+                if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                    // Send a message to the service worker to update the cache from JSON
+                    navigator.serviceWorker.controller.postMessage({
+                        type: 'UPDATE_CACHE_FROM_JSON'
+                    });
+                    console.log('Requested service worker to update cache from JSON');
+
+                    // Listen for the response from the service worker
+                    navigator.serviceWorker.addEventListener('message', function(event) {
+                        if (event.data && event.data.type === 'CACHE_UPDATED') {
+                            console.log('Cache updated at:', event.data.timestamp);
+                        }
+                    });
+                }
+            }
+
             // Load simulations when the page loads
             loadSimulations();
+
+            // Update the service worker cache from the JSON file
+            // This ensures all simulations are cached for offline use
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.ready.then(() => {
+                    // Wait a moment to ensure service worker is fully active
+                    setTimeout(() => {
+                        updateCacheFromJson();
+                    }, 1000);
+                });
+            }
         });
     </script>
 </body>

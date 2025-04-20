@@ -49,16 +49,52 @@ Simulation Platform is a web-based platform that hosts interactive simulations i
 1. צור קובץ HTML חדש בתיקיית `simulations`
 2. הקובץ צריך להיות עצמאי (standalone) ולכלול את כל הסגנונות והסקריפטים הנדרשים
 3. הוסף כותרת מתאימה בתגית `<title>`
-4. דחוף את הקובץ למאגר GitHub
-5. האתר יזהה אוטומטית את הסימולציה החדשה ויציג אותה ברשימה
+4. עדכן את קובץ `simulations.json` והוסף את הסימולציה החדשה לרשימה
+5. דחוף את הקבצים למאגר GitHub
 
 To add a new simulation:
 
 1. Create a new HTML file in the `simulations` directory
 2. The file should be standalone and include all required styles and scripts
 3. Add an appropriate title in the `<title>` tag
-4. Push the file to the GitHub repository
-5. The site will automatically detect the new simulation and display it in the list
+4. Update the `simulations.json` file and add the new simulation to the list
+5. Push the files to the GitHub repository
+
+### מבנה קובץ ה-JSON (JSON File Structure)
+
+קובץ `simulations.json` מכיל רשימה של כל הסימולציות הזמינות באתר. הוא מאורגן במבנה הבא:
+
+```json
+{
+  "simulations": [
+    {
+      "path": "simulations/example.html",
+      "title": "כותרת הסימולציה",
+      "description": "תיאור קצר של הסימולציה"
+    },
+    ...
+  ]
+}
+```
+
+The `simulations.json` file contains a list of all available simulations on the site. It is organized in the following structure:
+
+```json
+{
+  "simulations": [
+    {
+      "path": "simulations/example.html",
+      "title": "Simulation Title",
+      "description": "Brief description of the simulation"
+    },
+    ...
+  ]
+}
+```
+
+כאשר מוסיפים סימולציה חדשה, יש להוסיף אובייקט חדש למערך `simulations` עם המידע הרלוונטי.
+
+When adding a new simulation, add a new object to the `simulations` array with the relevant information.
 
 ## רישיון (License)
 
