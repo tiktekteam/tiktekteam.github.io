@@ -369,18 +369,73 @@
             // Function to fetch and display simulations
             async function loadSimulations() {
                 try {
-                    // In a GitHub Pages environment, we can use the GitHub API to fetch repository contents
-                    // For now, we'll use a simple approach that works with the existing files
-
                     const simulationsGrid = document.querySelector('.simulations-grid');
 
-                    // Clear existing cards (they'll be re-added if they exist)
+                    // Clear existing cards
                     simulationsGrid.innerHTML = '';
 
-                    // Known simulations (these will always be included)
+                    // Get the current hostname and protocol for GitHub Pages compatibility
+                    const baseUrl = window.location.origin;
+
+                    // Fetch the list of HTML files in the simulations directory
+                    try {
+                        // First, try to use the GitHub API if we're on GitHub Pages
+                        // Extract username and repo name from the URL if on GitHub Pages
+                        const ghPagesRegex = /https?:\/\/([^.]+)\.github\.io\/([^/]+)/;
+                        const ghMatch = window.location.href.match(ghPagesRegex);
+
+                        if (ghMatch) {
+                            const username = ghMatch[1];
+                            const repoName = ghMatch[2];
+                            const path = 'simulations';
+
+                            console.log(`Detected GitHub Pages: ${username}/${repoName}`);
+
+                            // Use GitHub API to get directory contents
+                            const apiUrl = `https://api.github.com/repos/${username}/${repoName}/contents/${path}`;
+                            const response = await fetch(apiUrl);
+
+                            if (response.ok) {
+                                const files = await response.json();
+
+                                // Process each HTML file
+                                const processPromises = files
+                                    .filter(file => file.name.endsWith('.html'))
+                                    .map(async file => {
+                                        try {
+                                            // Fetch the HTML file to extract its title
+                                            const htmlResponse = await fetch(file.download_url);
+                                            const html = await htmlResponse.text();
+
+                                            // Parse the HTML to get the title
+                                            const parser = new DOMParser();
+                                            const doc = parser.parseFromString(html, 'text/html');
+                                            const title = doc.querySelector('title')?.textContent || file.name;
+
+                                            // Create and add the card
+                                            const card = createSimulationCard(`${path}/${file.name}`, title);
+                                            simulationsGrid.appendChild(card);
+                                        } catch (err) {
+                                            console.error(`Error processing file ${file.name}:`, err);
+                                            // Add card with filename as fallback
+                                            const card = createSimulationCard(`${path}/${file.name}`, file.name);
+                                            simulationsGrid.appendChild(card);
+                                        }
+                                    });
+
+                                await Promise.all(processPromises);
+                                return; // Exit if GitHub API method succeeded
+                            }
+                        }
+                    } catch (githubError) {
+                        console.warn('GitHub API method failed, falling back to known simulations:', githubError);
+                    }
+
+                    // Fallback: Use known simulations if GitHub API method fails
                     const knownSimulations = [
                         { path: 'simulations/parabole-meets-different-lines.html', title: 'פרבולה פוגשת ישרים שונים' },
-                        { path: 'simulations/subtracting-negative-number.html', title: 'חיסור במספר שלילי' }
+                        { path: 'simulations/subtracting-negative-number.html', title: 'חיסור במספר שלילי' },
+                        { path: 'simulations/test.html', title: 'בדיקה' }
                     ];
 
                     // Add known simulations
@@ -388,40 +443,6 @@
                         const card = createSimulationCard(sim.path, sim.title);
                         simulationsGrid.appendChild(card);
                     });
-
-                    // In a real implementation, you would fetch the list of files from the GitHub API
-                    // and add any new simulations that aren't in the knownSimulations list
-
-                    // Example of how this might work with the GitHub API:
-                    /*
-                    const repoOwner = 'your-github-username';
-                    const repoName = 'your-repo-name';
-                    const path = 'simulations';
-
-                    const response = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/contents/${path}`);
-                    const files = await response.json();
-
-                    files.forEach(file => {
-                        if (file.name.endsWith('.html')) {
-                            // Check if this is not already in knownSimulations
-                            const isKnown = knownSimulations.some(sim => sim.path === `${path}/${file.name}`);
-
-                            if (!isKnown) {
-                                // Fetch the HTML file to extract its title
-                                fetch(file.download_url)
-                                    .then(response => response.text())
-                                    .then(html => {
-                                        const parser = new DOMParser();
-                                        const doc = parser.parseFromString(html, 'text/html');
-                                        const title = doc.querySelector('title').textContent;
-
-                                        const card = createSimulationCard(`${path}/${file.name}`, title);
-                                        simulationsGrid.appendChild(card);
-                                    });
-                            }
-                        }
-                    });
-                    */
                 } catch (error) {
                     console.error('Error loading simulations:', error);
                 }

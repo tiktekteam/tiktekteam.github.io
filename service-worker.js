@@ -12,7 +12,8 @@ self.addEventListener('install', (event) => {
           '/',
           '/index.html',
           '/simulations/parabole-meets-different-lines.html',
-          '/simulations/subtracting-negative-number.html'
+          '/simulations/subtracting-negative-number.html',
+          '/simulations/test.html'
         ]);
       })
   );
@@ -45,7 +46,7 @@ self.addEventListener('fetch', (event) => {
 
         // Clone the request because it's a one-time use stream
         const fetchRequest = event.request.clone();
-        
+
         // Only cache requests with supported schemes (http, https)
         const url = new URL(fetchRequest.url);
         if (!SUPPORTED_SCHEMES.includes(url.protocol)) {
