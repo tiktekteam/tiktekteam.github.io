@@ -431,20 +431,199 @@
                         console.warn('GitHub API method failed, falling back to known simulations:', githubError);
                     }
 
-                    // Fallback: Use known simulations if GitHub API method fails
+                    // Fallback: Try to dynamically discover simulation files
+                    console.log('Attempting to dynamically discover simulation files...');
+
+                    // Start with known simulations as a base
                     const knownSimulations = [
                         { path: 'simulations/parabole-meets-different-lines.html', title: 'פרבולה פוגשת ישרים שונים' },
                         { path: 'simulations/subtracting-negative-number.html', title: 'חיסור במספר שלילי' },
                         { path: 'simulations/test.html', title: 'בדיקה' }
                     ];
 
-                    // Add known simulations
+                    // Add known simulations first
                     knownSimulations.forEach(sim => {
                         const card = createSimulationCard(sim.path, sim.title);
                         simulationsGrid.appendChild(card);
                     });
+
+                    // Then try to discover additional simulations
+                    discoverSimulations();
                 } catch (error) {
                     console.error('Error loading simulations:', error);
+                }
+            }
+
+            // Function to dynamically discover simulation files
+            async function discoverSimulations() {
+                try {
+                    const simulationsGrid = document.querySelector('.simulations-grid');
+                    const existingPaths = new Set(
+                        Array.from(simulationsGrid.querySelectorAll('a')).map(a => a.getAttribute('href'))
+                    );
+
+                    // First, check for test2.html specifically (mentioned in the issue)
+                    await checkAndAddFile('test2.html', existingPaths, simulationsGrid);
+
+                    // Then check for other numbered test files
+                    for (let i = 1; i <= 10; i++) {
+                        const fileName = `test${i}.html`;
+                        // Skip test.html since it's already in the known simulations
+                        if (fileName === 'test1.html') continue;
+
+                        const filePath = `simulations/${fileName}`;
+
+                        // Skip if this file is already in the grid
+                        if (existingPaths.has(filePath)) {
+                            continue;
+                        }
+
+                        try {
+                            // Try to fetch the file to see if it exists
+                            const response = await fetch(filePath, { method: 'HEAD' });
+
+                            if (response.ok) {
+                                console.log(`Discovered new simulation file: ${filePath}`);
+
+                                // Fetch the full file to extract the title
+                                const htmlResponse = await fetch(filePath);
+                                const html = await htmlResponse.text();
+
+                                // Parse the HTML to get the title
+                                const parser = new DOMParser();
+                                const doc = parser.parseFromString(html, 'text/html');
+                                const title = doc.querySelector('title')?.textContent || fileName;
+
+                                // Create and add the card
+                                const card = createSimulationCard(filePath, title);
+                                simulationsGrid.appendChild(card);
+
+                                // Update the service worker cache if possible
+                                updateServiceWorkerCache(filePath);
+
+                                // Add to existing paths to avoid duplicates
+                                existingPaths.add(filePath);
+                            }
+                        } catch (error) {
+                            // Silently continue if file not found
+                        }
+                    }
+
+                    // Try to discover files by scanning the directory
+                    try {
+                        // Try to fetch a directory listing if available
+                        // This won't work in most browsers due to security restrictions,
+                        // but it's worth trying in case the server supports directory listings
+                        const response = await fetch('simulations/');
+
+                        if (response.ok) {
+                            const html = await response.text();
+
+                            // Parse the HTML to look for links to HTML files
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(html, 'text/html');
+                            const links = doc.querySelectorAll('a');
+
+                            // Check each link to see if it points to an HTML file
+                            for (const link of links) {
+                                const href = link.getAttribute('href');
+                                if (href && href.endsWith('.html')) {
+                                    // Extract the filename
+                                    const fileName = href.split('/').pop();
+                                    const filePath = `simulations/${fileName}`;
+
+                                    // Skip if this file is already in the grid
+                                    if (existingPaths.has(filePath)) {
+                                        continue;
+                                    }
+
+                                    try {
+                                        // Fetch the full file to extract the title
+                                        const htmlResponse = await fetch(filePath);
+                                        const html = await htmlResponse.text();
+
+                                        // Parse the HTML to get the title
+                                        const parser = new DOMParser();
+                                        const doc = parser.parseFromString(html, 'text/html');
+                                        const title = doc.querySelector('title')?.textContent || fileName;
+
+                                        // Create and add the card
+                                        const card = createSimulationCard(filePath, title);
+                                        simulationsGrid.appendChild(card);
+
+                                        // Update the service worker cache if possible
+                                        updateServiceWorkerCache(filePath);
+
+                                        // Add to existing paths to avoid duplicates
+                                        existingPaths.add(filePath);
+                                    } catch (error) {
+                                        // Silently continue if file not found
+                                    }
+                                }
+                            }
+                        }
+                    } catch (error) {
+                        console.log('Directory listing not available or error scanning directory:', error.message);
+                    }
+                } catch (error) {
+                    console.error('Error discovering simulations:', error);
+                }
+            }
+
+            // Helper function to check if a file exists and add it to the grid
+            async function checkAndAddFile(fileName, existingPaths, simulationsGrid) {
+                const filePath = `simulations/${fileName}`;
+
+                // Skip if this file is already in the grid
+                if (existingPaths.has(filePath)) {
+                    console.log(`File ${filePath} already in grid, skipping`);
+                    return false;
+                }
+
+                try {
+                    // Try to fetch the file to see if it exists
+                    const response = await fetch(filePath, { method: 'HEAD' });
+
+                    if (response.ok) {
+                        console.log(`Discovered new simulation file: ${filePath}`);
+
+                        // Fetch the full file to extract the title
+                        const htmlResponse = await fetch(filePath);
+                        const html = await htmlResponse.text();
+
+                        // Parse the HTML to get the title
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        const title = doc.querySelector('title')?.textContent || fileName;
+
+                        // Create and add the card
+                        const card = createSimulationCard(filePath, title);
+                        simulationsGrid.appendChild(card);
+
+                        // Update the service worker cache if possible
+                        updateServiceWorkerCache(filePath);
+
+                        // Add to existing paths to avoid duplicates
+                        existingPaths.add(filePath);
+
+                        return true; // File was found and added
+                    }
+                } catch (error) {
+                    console.log(`File ${filePath} not found or error fetching: ${error.message}`);
+                }
+
+                return false; // File was not found or not added
+            }
+
+            // Function to update the service worker cache with a new file
+            function updateServiceWorkerCache(filePath) {
+                if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                    // Send a message to the service worker to cache the new file
+                    navigator.serviceWorker.controller.postMessage({
+                        type: 'CACHE_NEW_FILE',
+                        url: filePath
+                    });
+                    console.log(`Requested service worker to cache: ${filePath}`);
                 }
             }
 
