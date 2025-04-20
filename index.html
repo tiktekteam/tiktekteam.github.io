@@ -410,25 +410,16 @@
                 } catch (error) {
                     console.error('Error loading simulations:', error);
 
-                    // Fallback to hardcoded simulations if JSON file fails
-                    const fallbackSimulations = [
-                        { 
-                            path: 'simulations/parabole-meets-different-lines.html', 
-                            title: 'פרבולה פוגשת ישרים שונים' 
-                        },
-                        { 
-                            path: 'simulations/subtracting-negative-number.html', 
-                            title: 'חיסור במספר שלילי' 
-                        }
-                    ];
-
-                    console.log('Falling back to hardcoded simulations list');
-
+                    // Display error message instead of using hardcoded fallback
                     const simulationsGrid = document.querySelector('.simulations-grid');
-                    fallbackSimulations.forEach(sim => {
-                        const card = createSimulationCard(sim.path, sim.title);
-                        simulationsGrid.appendChild(card);
-                    });
+                    simulationsGrid.innerHTML = `
+                        <div style="grid-column: 1 / -1; text-align: center; padding: 20px; background-color: #fff3cd; border: 1px solid #ffeeba; border-radius: 8px;">
+                            <h3 style="color: #856404; margin-top: 0;">שגיאה בטעינת הסימולציות</h3>
+                            <p>לא ניתן לטעון את רשימת הסימולציות. אנא נסו לרענן את הדף או בדקו את קובץ simulations.json.</p>
+                        </div>
+                    `;
+
+                    console.log('Displayed error message for failed simulations loading');
                 }
             }
 
