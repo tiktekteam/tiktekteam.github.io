@@ -441,11 +441,16 @@
                         { path: 'simulations/test.html', title: 'בדיקה' }
                     ];
 
-                    // Add known simulations first
-                    knownSimulations.forEach(sim => {
-                        const card = createSimulationCard(sim.path, sim.title);
-                        simulationsGrid.appendChild(card);
+                    // Check if known simulations still exist before adding them
+                    const knownSimulationPromises = knownSimulations.map(sim => {
+                        // Extract the filename from the path
+                        const fileName = sim.path.split('/').pop();
+                        // Use the existing checkAndAddFile function to check if the file exists
+                        return checkAndAddFile(fileName, existingPaths, simulationsGrid);
                     });
+
+                    // Wait for all known simulations to be checked
+                    await Promise.all(knownSimulationPromises);
 
                     // Then try to discover additional simulations
                     discoverSimulations();
