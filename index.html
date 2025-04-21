@@ -423,16 +423,40 @@
                     console.log(`Loaded ${data.simulations.length} simulations from simulations.json`);
 
                     // Create a card for each simulation
-                    data.simulations.forEach(simulation => {
-                        const card = createSimulationCard(
-                            simulation.path, 
-                            simulation.title, 
-                            simulation.description
-                        );
-                        simulationsGrid.appendChild(card);
+                    const simulationPromises = data.simulations.map(async simulation => {
+                        try {
+                            // Check if the simulation file exists before creating a card for it
+                            const fileCheckResponse = await fetch(simulation.path, { method: 'HEAD' });
+                            if (fileCheckResponse.ok) {
+                                const card = createSimulationCard(
+                                    simulation.path, 
+                                    simulation.title, 
+                                    simulation.description
+                                );
+                                simulationsGrid.appendChild(card);
 
-                        // Update the service worker cache if possible
-                        updateServiceWorkerCache(simulation.path);
+                                // Update the service worker cache if possible
+                                updateServiceWorkerCache(simulation.path);
+                                return true; // File exists and card was created
+                            } else {
+                                console.warn(`Simulation file not found: ${simulation.path}`);
+                                return false; // File doesn't exist
+                            }
+                        } catch (error) {
+                            console.warn(`Error checking simulation file: ${simulation.path}`, error);
+                            return false; // Error occurred
+                        }
+                    });
+
+                    // Wait for all checks to complete
+                    Promise.all(simulationPromises).then(results => {
+                        const validSimulationsCount = results.filter(result => result).length;
+                        console.log(`Displayed ${validSimulationsCount} valid simulations out of ${data.simulations.length} in simulations.json`);
+
+                        // If some simulations were invalid, suggest running the update script
+                        if (validSimulationsCount < data.simulations.length) {
+                            console.warn('Some simulations in simulations.json no longer exist. Consider running "npm run update-simulations" to update the file.');
+                        }
                     });
 
                 } catch (error) {
