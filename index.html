@@ -371,6 +371,10 @@
                 return card;
             }
 
+            // Store the last known version to detect updates
+            let lastKnownVersion = localStorage.getItem('simulationsVersion') || '';
+            let lastKnownUpdate = localStorage.getItem('simulationsLastUpdated') || '';
+
             // Function to fetch and display simulations from the JSON file
             async function loadSimulations() {
                 try {
@@ -379,8 +383,9 @@
                     // Clear existing cards
                     simulationsGrid.innerHTML = '';
 
-                    // Fetch the simulations.json file
-                    const response = await fetch('simulations.json');
+                    // Fetch the simulations.json file with cache busting
+                    const timestamp = new Date().getTime();
+                    const response = await fetch(`simulations.json?v=${timestamp}`);
 
                     if (!response.ok) {
                         throw new Error(`Failed to fetch simulations.json: ${response.status} ${response.statusText}`);
@@ -390,6 +395,29 @@
 
                     if (!data || !data.simulations || !Array.isArray(data.simulations)) {
                         throw new Error('Invalid simulations.json format');
+                    }
+
+                    // Check if the version or lastUpdated has changed
+                    const currentVersion = data.version || '';
+                    const currentLastUpdated = data.lastUpdated || '';
+
+                    const hasNewVersion = currentVersion !== lastKnownVersion;
+                    const hasNewUpdate = currentLastUpdated !== lastKnownUpdate;
+
+                    if (hasNewVersion || hasNewUpdate) {
+                        console.log(`Detected update: Version changed from ${lastKnownVersion} to ${currentVersion} or lastUpdated changed from ${lastKnownUpdate} to ${currentLastUpdated}`);
+
+                        // Update stored version information
+                        localStorage.setItem('simulationsVersion', currentVersion);
+                        localStorage.setItem('simulationsLastUpdated', currentLastUpdated);
+
+                        // Force service worker to update cache
+                        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                            navigator.serviceWorker.controller.postMessage({
+                                type: 'UPDATE_CACHE_FROM_JSON',
+                                forceUpdate: true
+                            });
+                        }
                     }
 
                     console.log(`Loaded ${data.simulations.length} simulations from simulations.json`);
@@ -448,6 +476,32 @@
                     navigator.serviceWorker.addEventListener('message', function(event) {
                         if (event.data && event.data.type === 'CACHE_UPDATED') {
                             console.log('Cache updated at:', event.data.timestamp);
+
+                            // If this was a forced update due to version change, notify user and reload the page
+                            if (event.data.forceUpdate === true) {
+                                console.log('Detected version change, reloading page to show latest content...');
+
+                                // Show a notification to the user
+                                const notification = document.createElement('div');
+                                notification.style.position = 'fixed';
+                                notification.style.top = '10px';
+                                notification.style.left = '50%';
+                                notification.style.transform = 'translateX(-50%)';
+                                notification.style.backgroundColor = '#4CAF50';
+                                notification.style.color = 'white';
+                                notification.style.padding = '10px 20px';
+                                notification.style.borderRadius = '5px';
+                                notification.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
+                                notification.style.zIndex = '9999';
+                                notification.style.textAlign = 'center';
+                                notification.textContent = 'עדכון חדש זמין! הדף יטען מחדש...';
+                                document.body.appendChild(notification);
+
+                                // Add a small delay to ensure the notification is shown
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 1500);
+                            }
                         }
                     });
                 }

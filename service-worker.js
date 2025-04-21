@@ -128,62 +128,116 @@ self.addEventListener('message', (event) => {
       });
   } else if (event.data && event.data.type === 'UPDATE_CACHE_FROM_JSON') {
     // Reload and cache all simulations from the JSON file
-    console.log('Service Worker received request to update cache from JSON');
-    loadAndCacheSimulations()
-      .then(() => {
-        // Notify the client that the cache has been updated
-        if (event.source) {
-          event.source.postMessage({
-            type: 'CACHE_UPDATED',
-            timestamp: new Date().toISOString()
-          });
-        }
-      });
+    const forceUpdate = event.data.forceUpdate === true;
+    console.log(`Service Worker received request to update cache from JSON (forceUpdate: ${forceUpdate})`);
+
+    if (forceUpdate) {
+      // If forceUpdate is true, clear the cache first
+      caches.open(CACHE_NAME)
+        .then(cache => {
+          // Delete simulations.json from cache to force a fresh fetch
+          cache.delete('/simulations.json')
+            .then(deleted => {
+              console.log('Deleted simulations.json from cache:', deleted);
+              // Then reload and cache all simulations
+              return loadAndCacheSimulations();
+            })
+            .then(() => {
+              // Notify the client that the cache has been updated
+              if (event.source) {
+                event.source.postMessage({
+                  type: 'CACHE_UPDATED',
+                  timestamp: new Date().toISOString(),
+                  forceUpdate: true
+                });
+              }
+            });
+        });
+    } else {
+      // Regular update without clearing cache first
+      loadAndCacheSimulations()
+        .then(() => {
+          // Notify the client that the cache has been updated
+          if (event.source) {
+            event.source.postMessage({
+              type: 'CACHE_UPDATED',
+              timestamp: new Date().toISOString()
+            });
+          }
+        });
+    }
   }
 });
 
-// Fetch event - serve from cache or network
+// Fetch event - use different strategies based on the request
 self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // Return cached response if found
-        if (response) {
-          return response;
-        }
+  const url = new URL(event.request.url);
 
-        // Clone the request because it's a one-time use stream
-        const fetchRequest = event.request.clone();
-
-        // Only cache requests with supported schemes (http, https)
-        const url = new URL(fetchRequest.url);
-        if (!SUPPORTED_SCHEMES.includes(url.protocol)) {
-          return fetch(fetchRequest);
-        }
-
-        return fetch(fetchRequest).then((response) => {
-          // Check if we received a valid response
-          if (!response || response.status !== 200 || response.type !== 'basic') {
-            return response;
-          }
-
-          // Clone the response because it's a one-time use stream
-          const responseToCache = response.clone();
-
-          // Only cache supported schemes
-          if (SUPPORTED_SCHEMES.includes(url.protocol)) {
+  // For simulations.json, use a network-first strategy to ensure we get the latest version
+  if (url.pathname.endsWith('/simulations.json')) {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          // If we got a valid response, clone it and update the cache
+          if (response && response.status === 200) {
+            const responseToCache = response.clone();
             caches.open(CACHE_NAME)
-              .then((cache) => {
-                // Check if the URL contains a simulation file
-                if (url.pathname.includes('/simulations/') && url.pathname.endsWith('.html')) {
-                  console.log('Automatically caching simulation file:', url.pathname);
-                }
+              .then(cache => {
+                console.log('Updating cache with fresh simulations.json');
                 cache.put(event.request, responseToCache);
               });
           }
-
           return response;
-        });
-      })
-  );
+        })
+        .catch(() => {
+          // If network request fails, try to return from cache
+          console.log('Network request for simulations.json failed, falling back to cache');
+          return caches.match(event.request);
+        })
+    );
+  } 
+  // For all other requests, use a cache-first strategy
+  else {
+    event.respondWith(
+      caches.match(event.request)
+        .then((response) => {
+          // Return cached response if found
+          if (response) {
+            return response;
+          }
+
+          // Clone the request because it's a one-time use stream
+          const fetchRequest = event.request.clone();
+
+          // Only cache requests with supported schemes (http, https)
+          if (!SUPPORTED_SCHEMES.includes(url.protocol)) {
+            return fetch(fetchRequest);
+          }
+
+          return fetch(fetchRequest).then((response) => {
+            // Check if we received a valid response
+            if (!response || response.status !== 200 || response.type !== 'basic') {
+              return response;
+            }
+
+            // Clone the response because it's a one-time use stream
+            const responseToCache = response.clone();
+
+            // Only cache supported schemes
+            if (SUPPORTED_SCHEMES.includes(url.protocol)) {
+              caches.open(CACHE_NAME)
+                .then((cache) => {
+                  // Check if the URL contains a simulation file
+                  if (url.pathname.includes('/simulations/') && url.pathname.endsWith('.html')) {
+                    console.log('Automatically caching simulation file:', url.pathname);
+                  }
+                  cache.put(event.request, responseToCache);
+                });
+            }
+
+            return response;
+          });
+        })
+    );
+  }
 });
