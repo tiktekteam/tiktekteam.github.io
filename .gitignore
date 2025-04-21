@@ -44,3 +44,6 @@ yarn-error.log*
 
 # Debug files
 debug.log
+
+# Crypto configuration (contains secret keys)
+crypto-config.js

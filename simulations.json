@@ -1,21 +1,33 @@
 {
   "version": "1.0.0",
-  "lastUpdated": "2023-11-15T12:00:00Z",
+  "lastUpdated": "2025-04-21T07:20:57.729Z",
   "simulations": [
     {
-      "path": "simulations/parabole-meets-different-lines.html",
+      "path": "simulations\\parabole-meets-different-lines.html",
       "title": "פרבולה פוגשת ישרים שונים",
-      "description": "הדגמה גרפית של פתרון משוואות ריבועיות"
+      "description": "הדגמה של פרבולה פוגשת ישרים שונים",
+      "_private": {
+        "iv": "f8866cdb0a4ad963ef60799f7842f9ef",
+        "data": "kmyI65p+AHCMeBBAe3Ah96mq5vMWOtP7XuCJGH/xol9oxxzBAx9fjMIGOckkq4OP/6sDDiDLIc8De1ZeUlLyL6e+uvRgJ4QHgPWkvYw+Y037awlY3iJhV/oA6wLNCKO0PiG+n89fz2+kWMXDyEZuZch4Z6xfnaXLXMHQU7Igvxbv3dD7qJRhlOoYTZrHoxge6+ddcBuqGBv0rDRQOXqTnQXw300u+4X/avFsDB3U9kk="
+      }
     },
     {
-      "path": "simulations/subtracting-negative-number.html",
+      "path": "simulations\\subtracting-negative-number.html",
       "title": "חיסור במספר שלילי",
-      "description": "הדגמה ויזואלית של חיסור מספרים שליליים"
+      "description": "הדגמה של חיסור במספר שלילי",
+      "_private": {
+        "iv": "f8866cdb0a4ad963ef60799f7842f9ef",
+        "data": "kmyI65p+AHCMeBBAe3Ah96mq5vMWOtP7XuCJGH/xol800garweNP+e1VJCPqvAh0FpP/cUx7fuRw1JzjAzlVzAAk88JbL4yIOx0N9fZi/vomL69eblLg32ggr68v1ZVahzrUlWHPq8Sbj9cPI9n6f3fOg+yjEC+ontSIioSrmPf8Q+6USwYwQvwA4WYEQOitPxFnM7AqJtT6jL4claaFdOzD//6NCnR4FEEGWuA/f9I="
+      }
     },
     {
-      "path": "simulations/test-1.html",
+      "path": "simulations\\test1.html",
       "title": "test1",
-      "description": "בדיקה מספר 1"
+      "description": "הדגמה של test1",
+      "_private": {
+        "iv": "f8866cdb0a4ad963ef60799f7842f9ef",
+        "data": "kmyI65p+AHCMeBBAe3Ah96mq5vMWOtP7XuCJGH/xol/wGXEKDsPemB0ftuingl/MQsYzIVa8uDgIhhiUul7JEz5Fdb/B2w/2ff67IwMvjo1Kas8lUzKVb2gdSrBH57Gx/fxQG/e/Zd6GdWjdtoqhopYPxWxH70/UqP2tOzek4ipNF3NDzVNPq5ju0dueCN+Prd8AxFht0oAVWBmcEIYa6F2+7yx+MuFAtw1N0Awt8jQ="
+      }
     }
   ]
 }
