@@ -11,6 +11,11 @@
       "path": "simulations/subtracting-negative-number.html",
       "title": "חיסור במספר שלילי",
       "description": "הדגמה ויזואלית של חיסור מספרים שליליים"
+    },
+    {
+      "path": "simulations/test-1.html",
+      "title": "test1",
+      "description": "בדיקה מספר 1"
     }
   ]
 }
